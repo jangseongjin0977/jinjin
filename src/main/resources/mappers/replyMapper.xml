@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="replyMapper">
+
+<!-- 댓글 조회 -->
+	<select id="readReply" resultType="com.board.domain.ReplyVO">
+    	SELECT
+    		  COMMENT_ID, USER_ID, COMMENT_CONTENT, COMMENT_DATE
+    	 FROM TB_COMMENT
+    	WHERE REVIEW_ID = #{review_id}
+	</select>
+
+
+	<insert id="writeReply">
+		INSERT INTO tb_comment(
+			REVIEW_ID
+			, COMMENT_ID
+			, COMMENT_CONTENT
+			, USER_ID
+		)
+		VALUES(    #{review_id}
+			, TB_COMMENT_SEQ.NEXTVAL
+			, #{comment_content}
+			, #{user_id}	)
+	</insert>
+	
+	<!-- 댓글 수정 -->
+	<update id="updateReply" parameterType="com.board.domain.ReplyVO">
+		UPDATE tb_comment SET COMMENT_CONTENT = #{comment_content}
+		WHERE COMMENT_ID = #{comment_id}
+	</update>
+
+<!-- 댓글 삭제 -->
+	<delete id="deleteReply" parameterType="com.board.domain.ReplyVO">
+		DELETE FROM tb_comment
+		WHERE COMMENT_ID = #{comment_id}
+	</delete>
+	
+<!-- 선택된 댓글 조회 -->
+	<select id="selectReply" resultType="com.board.domain.ReplyVO">
+		SELECT
+				review_id
+			  , comment_id
+			  , COMMENT_CONTENT
+			  , USER_ID
+			  , COMMENT_DATE
+		  FROM tb_comment
+		 WHERE COMMENT_ID = #{comment_id}
+	</select>
+</mapper>

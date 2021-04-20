@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boardMapper">
+	<!-- <select id="list" resultType="com.board.domain.RboardVO">
+			SELECT review_id, movie_id, user_id, review_title, review_content, review_date, review_views, total_push
+			FROM re_board
+	</select>-->
+	
+	<select id="listPage" resultType="com.board.domain.RboardVO" parameterType="com.board.domain.SearchCriteria">
+		SELECT  review_id, 
+		        review_title,
+		        user_id, 
+		        review_date,
+		        review_views,
+		        total_push
+		 FROM ( 
+		        SELECT review_id, 
+		               review_title, 
+		               user_id, 
+		               review_date,
+		               review_views,
+		               total_push,
+		               ROW_NUMBER() OVER(ORDER BY review_id DESC) AS RNUM
+		         FROM RE_BOARD 
+		         WHERE 1=1
+		         <include refid="search"></include>
+		                       ) RE
+		WHERE RNUM BETWEEN #{rowStart} AND #{rowEnd}
+		ORDER BY review_id DESC
+	</select>
+	
+	<select id="newPage" resultType="com.board.domain.RboardVO">
+	select * from RE_BOARD where rownum <![CDATA[ < ]]> 5 order by review_date desc;
+	</select>
+	
+	<select id="listCount" parameterType="com.board.domain.SearchCriteria" resultType="int">
+		SELECT COUNT(review_id)
+		   FROM RE_BOARD
+		   WHERE 1=1
+		<include refid="search"></include>	
+		   AND review_id > 0
+	</select>
+	
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">AND review_title LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'c'.toString()">AND review_content LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'w'.toString()">AND user_id LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'tc'.toString()">AND (review_title LIKE '%' || #{keyword} || '%') or (review_content LIKE '%' || #{keyword} || '%')</if>
+		</if>
+	</sql>
+
+	<select id="read" parameterType="int" resultType="com.board.domain.RboardVO">
+			SELECT review_id, user_id, review_title, review_content, review_date, review_img, thumbimg
+			FROM re_board
+		 WHERE review_id = #{review_id}
+	</select>
+	
+	   <insert id="insert">
+	   INSERT INTO re_board(  review_id
+	   					      , review_title
+	   					      , review_content 
+	   					      , user_id
+	   					      , review_img
+	   					      , thumbimg )
+	                 VALUES(    REVIEW_BOARD_SEQ.NEXTVAL 
+	                 		  , #{review_title}
+	                 		  , #{review_content}
+	                 		  , #{user_id}  
+	                 		  , #{review_img} 
+	                 		  , #{thumbimg}  )
+   
+   </insert>
+   
+   <update id="update" parameterType="com.board.domain.RboardVO">
+		UPDATE re_board
+		   SET review_title    =   #{review_title},
+		   	   review_content  =   #{review_content},
+		   	   
+		   	   review_img = #{review_img},
+		   	   thumbimg = #{thumbimg}
+		 WHERE review_id = #{review_id} 
+	</update>
+	
+	<delete id="delete" parameterType="int">
+		DELETE 
+		  FROM re_board
+		 WHERE review_id = #{review_id}
+	</delete>
+	
+	   <!-- 게시판 조회수 -->
+    <update id="boardHit" parameterType="int">
+    	UPDATE re_board SET
+    	review_views = review_views+1
+    	WHERE review_id = #{review_id}
+    </update>
+    
+    <update id = "recommend" parameterType="int">
+		update re_board
+		set total_push = total_push+1 
+		where review_id = #{review_id}
+	</update>
+
+</mapper>

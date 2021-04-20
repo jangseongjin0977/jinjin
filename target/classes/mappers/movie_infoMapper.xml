@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.mappers.board">
+
+	<insert id="insert" parameterType = "com.board.domain.Movie_InfoVO" useGeneratedKeys="true" keyProperty="movie_id">
+		<selectKey keyProperty="movie_id" resultType="int" order="BEFORE">
+			select MOVIE_INFO_SEQ.nextval FROM DUAL
+		</selectKey>
+		insert into movie_info (movie_id ,category_id, user_id, movie_title, movie_content, movie_img, movie_date, Img)
+			values(#{movie_id}, #{category_id}, #{user_id}, #{movie_title}, #{movie_content}, #{movie_img}, sysdate, #{Img})
+	</insert>
+
+
+	<select id="listPage" resultType="com.board.domain.Movie_InfoVO" parameterType="com.board.domain.SearchCriteria">
+		select movie_id, category_id, user_id, movie_title, movie_content, movie_img, movie_date, movie_views, Img
+		from 
+			(select movie_id, 
+			category_id, 
+			user_id, 
+			movie_title, 
+			movie_content, 
+			movie_img, 
+			movie_date, 
+			movie_views,
+			Img,
+		row_number() over(order by movie_id desc) as rnum from movie_info where 1=1 
+			<include refid="search"></include>  
+								) movie 
+				where rnum between #{rowStart} and #{rowEnd}
+				order by movie_id desc
+	</select>
+	
+	<select id="listCount" parameterType="com.board.domain.SearchCriteria" resultType="int">
+		SELECT COUNT(movie_id)
+		FROM MOVIE_INFO
+		WHERE 1=1
+		 <include refid="search"></include> 
+		AND MOVIE_ID > 0
+	</select>
+	
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">AND movie_title LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'c'.toString()">AND movie_content LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'w'.toString()">AND user_id LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'tc'.toString()">AND (movie_title LIKE '%' || #{keyword} || '%') or (movie_content LIKE '%' || #{keyword} || '%')</if>
+		</if>
+	</sql>
+	
+	<select id= "read" parameterType = "int" resultType="com.board.domain.Movie_InfoVO">
+		select *
+		from movie_info 
+		where movie_id = #{movie_id}
+	</select>
+	
+	<select id = "delete" parameterType = "int">
+		delete from movie_info where movie_id = #{movie_id}
+	</select>
+	
+	<select id = "update" parameterType = "com.board.domain.Movie_InfoVO">
+		update movie_info set category_id = #{category_id},
+							  movie_title = #{movie_title}, 
+							  movie_content = #{movie_content},
+							  movie_img = #{movie_img},
+							  Img = #{Img}
+		 where movie_id = #{movie_id}
+	</select>
+	
+
+    <update id="movieviews" parameterType="int">
+    	UPDATE movie_info SET
+    	movie_views = movie_views+1
+    	WHERE movie_id = #{movie_id}
+    </update>
+
+</mapper>

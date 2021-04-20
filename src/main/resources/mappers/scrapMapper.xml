@@ -1,0 +1,36 @@
+
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="scrapMapper">
+
+	<!-- member테이블과 UserVO클래스 필드명을 매칭 시켜주는 resultMap 작성 -->
+	<resultMap id="ScrapMap" type="com.board.domain.ScrapVO">
+		<id property="scrapId" column="SCRAP_ID"/>
+		<result property="userId" column="USER_ID"/>
+		<result property="scrapTitle" column="SCRAP_TITLE"/>
+		<result property="scrapAd" column="SCRAP_AD"/>
+	</resultMap>
+
+	<!-- 스크랩 저장 -->
+	<insert id="scrapIn">
+		INSERT INTO SCRAP (SCRAP_ID, USER_ID, SCRAP_TITLE, SCRAP_AD)
+		VALUES (SCRAP_SEQ.NEXTVAL, #{userId}, #{scrapTitle}, #{scrapAd})
+	</insert>
+	
+	<!-- 스크랩 목록 -->
+	<select id="scrapList" resultMap="ScrapMap" >
+		SELECT SCRAP_ID, USER_ID, SCRAP_TITLE, SCRAP_AD 
+		FROM SCRAP
+		WHERE USER_ID = #{userId}
+		ORDER BY SCRAP_ID DESC
+	</select>
+	
+	<!-- 스크랩 삭제 -->
+	<delete id="scrapDelete">
+		DELETE FROM scrap 
+		WHERE user_id = #{userId}
+		and SCRAP_ID = #{scrapId}
+	</delete>
+	
+</mapper>
